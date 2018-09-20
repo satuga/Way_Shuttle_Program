@@ -1,0 +1,7 @@
+2016-11-24 04:04:50 - Starting C:\Program Files\nodejs\node.exe --harmony "C:\Users\responsiveuser\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js" -f "E:\Apache24\htdocs\responsive\shuttletracking\nodejs\server.js" -l "Shuttle tracking Service" -g 0.25 -w 1 -r 3 -a n
+2016-11-24 04:04:50 - Started 2612
+2016-11-24 04:05:47 - Stopping shuttletrackingservice.exe
+2016-11-24 04:05:47 - ProcessKill 2612
+2016-11-24 04:05:47 - Finished shuttletrackingservice.exe
+2016-11-24 04:08:40 - Starting C:\Program Files\nodejs\node.exe --harmony "C:\Users\responsiveuser\AppData\Roaming\npm\node_modules\node-windows\lib\wrapper.js" -f "E:\Apache24\htdocs\responsive\shuttletracking\nodejs\server.js" -l "Shuttle tracking Service" -g 0.25 -w 1 -r 3 -a n
+2016-11-24 04:08:40 - Started 1840
