@@ -1,0 +1,59 @@
+<?php
+require_once('config.php');
+GLOBAL $con;
+$query = "SELECT * FROM tbl_parkingweekdayavailability AS tpw INNER JOIN tbl_parking AS tpp ON tpp.P_ID = tpw.P_ID WHERE DATE( tpw.P_fromDate ) 
+BETWEEN CURDATE( ) AND CURDATE( ) + INTERVAL 14 DAY AND tpw.PA_No_Spaces !=  '0' AND tpw.occupiedSpaces IS NOT NULL AND tpw.occupiedSpaces !=  '0'
+AND tpp.Is_DynamicPrice =  '1' ORDER BY tpw.PA_ID DESC";
+
+$res = mysqli_query($con, $query) or die("Error");
+	$rowCount = mysqli_num_rows($res);       
+	if (!empty($rowCount)){   
+           $CURDATE = date('Y-m-d');
+	   while ($row = mysqli_fetch_array($res)) {                
+                   $pa_id = $row['P_ID'];
+                   $parking_space = $row['PA_No_Spaces']; 
+	           $occupiedSpaces = $row['occupiedSpaces'];
+	           $PA_P_Dailyprice = $row['PA_P_Dailyprice'];  
+			           
+		   $percentage = (($occupiedSpaces*100)/$parking_space); 
+		           	
+                   $dynamic_detail = "SELECT * FROM tbl_dynamic_price_rule WHERE P_ID = '".$pa_id."' and util_threshold <= '".$percentage."' order by util_threshold desc limit 1";
+	               $res1 = mysqli_query($con, $dynamic_detail) or die("Error");
+	               $rowCount1 = mysqli_num_rows($res1);
+	               if (!empty($rowCount1)){   
+	               while ($dynamic_detail_data = mysqli_fetch_array($res1)){                   
+               	   
+                        $Dynamic_Percentage = $dynamic_detail_data['util_threshold'];  
+					    $par_id = $row['PA_ID']; 
+					    $old_price = $row['PA_P_Dailyprice'];
+					    //$new_price = floor(($old_price*$dynamic_detail_data['Price']) * 100)/100;
+
+					     $new_price = floor(((($old_price*$dynamic_detail_data['price_increment'])/100)+$old_price)*100)/100;
+					     $check_dynamic_detail = "SELECT * FROM tbl_dynamic_price_log WHERE PA_ID = '".$par_id."'";
+				             $res11 = mysqli_query($con, $check_dynamic_detail) or die("Error");
+				             $rowCount11 = mysqli_num_rows($res11);
+                             
+			                     if(!empty($rowCount11)){	  
+                                                $check_dynamic_detail_data=mysqli_fetch_assoc($res11);
+			                   	if($check_dynamic_detail_data["dynamic_Percentage"] < $Dynamic_Percentage){
+			                   	
+                                   $sql = mysqli_query($con,"update tbl_dynamic_price_log set dynamic_Percentage = '".$Dynamic_Percentage."',Increment_Price = '".$dynamic_detail_data['price_increment']."',P_ID = '".$pa_id."', Date = '".$row['P_fromDate']."',new_price = '".$new_price."',old_price = '".$old_price."',C_Date='".$CURDATE."' where PA_ID = '".$par_id."'");
+                                    $query2 = mysqli_query($con,"update tbl_parkingweekdayavailability set PA_P_Dailyprice = '".$new_price."' where PA_ID = '".$par_id."'");
+
+                                    $action="Parking Prices updated ".$old_price." to ".$new_price." for ".date('d-M-Y',strtotime($row['P_fromDate']))."";
+								    $sql=mysqli_query($con,"INSERT INTO tbl_parkinglog(PL_UserID,PL_AdminID,PL_ParkingID,PL_ActionType,PL_Description,			PL_PriceOrSpaceUpdatedFor, PL_OldPrice,PL_NewPrice,PL_Created,PL_IPAddress,PL_IsEmailSent) VALUES(0,0,'".$pa_id."','".$action."','','".$row['P_fromDate']."','".$old_price."','".$new_price."',now(),'".$_SERVER['REMOTE_ADDR']."','N')");
+   
+                                }
+			                   }else{ 
+			                   	
+                                  $sql2 = mysqli_query($con,"INSERT INTO tbl_dynamic_price_log(`PA_ID`, `dynamic_Percentage`, `Increment_Price`, `Date`,`P_ID`,`new_price`,`old_price`,`C_Date`) VALUES ('".$par_id."', '".$Dynamic_Percentage."', '".$dynamic_detail_data['price_increment']."','".$row['P_fromDate']."','".$pa_id."','".$new_price."','".$old_price."','".$CURDATE."')");
+                                   $query2 = mysqli_query($con,"update tbl_parkingweekdayavailability set PA_P_Dailyprice = '".$new_price."' where PA_ID = '".$par_id."'");
+                                   $action="Parking Prices updated ".$old_price." to ".$new_price." for ".date('d-M-Y',strtotime($row['P_fromDate']))."";
+								    $sql=mysqli_query($con,"INSERT INTO tbl_parkinglog(PL_UserID,PL_AdminID,PL_ParkingID,PL_ActionType,PL_Description,			PL_PriceOrSpaceUpdatedFor, PL_OldPrice,PL_NewPrice,PL_Created,PL_IPAddress,PL_IsEmailSent) VALUES(0,0,'".$pa_id."','".$action."','','".$row['P_fromDate']."','".$old_price."','".$new_price."',now(),'".$_SERVER['REMOTE_ADDR']."','N')");
+			                   } 					
+								
+                }
+            } 
+	   }   
+	}
+?>
