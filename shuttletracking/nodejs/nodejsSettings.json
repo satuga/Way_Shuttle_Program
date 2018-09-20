@@ -1,0 +1,16 @@
+[
+	{
+		"uid": "shuttle",
+		"append": true,
+		"watch": true,
+		"script": "server.js",
+		"sourceDir": "C:/wamp64/www/wayBI/checkout/webservices/shuttletracking/nodejs" 
+	},
+	{
+		"uid": "smart",
+		"append": true,
+		"watch": true,
+		"script": "smart.js",
+		"sourceDir": "C:/wamp64/www/wayBI/checkout/webservices/shuttletracking/nodejs" 
+	}
+]
