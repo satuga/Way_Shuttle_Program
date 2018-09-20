@@ -1,0 +1,70 @@
+<?php
+function sanitize($input) { 
+    GLOBAL $con;
+    if (is_array($input)) {
+        foreach ($input as $var => $val) {
+            $output[$var] = sanitize($val);
+        }
+    } else {
+        if (get_magic_quotes_gpc()) {
+            $input = stripslashes($input);
+        }
+        $input = cleanInput($input);
+        $output = mysqli_real_escape_string($con, $input);
+    }
+    return $output;
+}
+function cleanInput($input) {
+    $search = array(
+        '@<script[^>]*?>.*?</script>@si', // Strip out javascript
+        '@<[\/\!]*?[^<>]*?>@si', // Strip out HTML tags
+        '@<style[^>]*?>.*?</style>@siU', // Strip style tags properly
+        '@<![\s\S]*?--[ \t\n\r]*>@'         // Strip multi-line comments
+    );
+    $output = preg_replace($search, '', $input);
+    return $output;
+}
+function checksum() {
+    $length = 30;
+    $characters = "0123456789abcdefghijklmnopqrstuvwxyz";
+    $string = "";
+    for ($p = 0; $p < $length; $p++) {
+        $string .= $characters[mt_rand(0, strlen($characters))];
+    }
+    $checksum_register = $string;
+    return $checksum_register;
+}
+function deleteDriver($userid) {			
+	GLOBAL $con;
+	if ($userid != '') {
+		$query = "DELETE FROM tbl_registeration WHERE id = $userid";
+		$res = mysqli_query($con, $query);                 
+	}
+}
+function getUsersBYemail($email) {
+    GLOBAL $con;
+    if ($email != '') {
+	$sql="select id from tbl_registeration WHERE email_add ='".$email."'"; 
+	$result1=mysqli_query($con, $sql);
+	return mysqli_num_rows($result1);		 
+    }
+}
+function getUsersBYid($id) {			
+    GLOBAL $con;
+    if ($id != '') {
+	$Reg_chk = "select id from tbl_registeration where id = '".$id."'"; 
+	$Reg_chk_query = mysqli_query($con,$Reg_chk);
+	return mysqli_num_rows($Reg_chk_query);			 
+    }
+}
+function getDriverSingleRecordBYuserid($userid) { 
+    GLOBAL $con;      
+    if ($userid != '') {   
+        $temp = array();
+        $chk = "select DVR_UserID,logo,id from tbl_shuttle_drivers inner join tbl_registeration on tbl_shuttle_drivers.DVR_UserID = tbl_registeration.id where DVR_UserID = '".$userid."'";
+	$chk_query = mysqli_query($con,$chk);
+        return $temp['data'] = mysqli_fetch_assoc($chk_query);
+    }
+}
+                
+?>
